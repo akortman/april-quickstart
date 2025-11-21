@@ -168,7 +168,7 @@ program
   .option('--git', 'init a git repository?', true)
   //.option('--github', 'create repository on github', false)
   .action(async (type, dest, options) => {
-    assert(['generic', 'node'].includes(type));
+    assert(['generic', 'node', 'cad'].includes(type));
     source = path.resolve(`${await repoRoot()}/templates/${type}`);
     dest = path.resolve(dest);
     console.log(dest);
