@@ -2,10 +2,11 @@
   "name": "april-quickstart",
   "version": "1.0.0",
   "description": "personal quickstart templates",
-  "type": "module",
+  "main": "src/index.js",
   "scripts": {
     "format": "npx prettier --write src",
-    "prepare": "husky"
+    "prepare": "husky",
+    "cli": "node src/index.js"
   },
   "repository": {
     "type": "git",
@@ -29,7 +30,10 @@
     "*": "prettier --ignore-unknown --write --ignore-path .gitignore"
   },
   "dependencies": {
+    "commander": "^14.0.2",
+    "dotenv": "^17.2.3",
     "dotenv-cli": "^10.0.0",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "tsx": "^4.20.6"
   }
 }

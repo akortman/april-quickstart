@@ -1,5 +1,5 @@
 {
-  "name": "!todo:projectName",
+  "name": "__TODO_PROJECT_NAME",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -14,15 +14,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/!todo:projectName"
+    "url": "git+https://github.com/__TODO_PROJECT_NAME"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/!todo:githubUser/!todo:projectName/issues"
+    "url": "https://github.com/__TODO_GITHUB_USER/__TODO_PROJECT_NAME/issues"
   },
-  "homepage": "https://github.com/!todo:githubUser/!todo:projectName#readme",
+  "homepage": "https://github.com/__TODO_GITHUB_USER/__TODO_PROJECT_NAME#readme",
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
