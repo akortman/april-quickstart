@@ -1,3 +1,10 @@
+# cad specific formats
+# note stl is plaintext and may be useful in version control but in most cases I don't want it
+*.stl
+*.3mf
+*.3mf.tmp # BambuStudio
+*.3mf.temp # BambuStudio
+
 # dotenv environment variable files
 .env
 .env.*
