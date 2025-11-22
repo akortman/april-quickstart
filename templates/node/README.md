@@ -1,5 +1,3 @@
-# !todo:projectName
+# \_\_TODO_PROJECT_NAME
 
-!todo
-
-your project description here
+\_\_TODO_PROJECT_DESCRIPTION
