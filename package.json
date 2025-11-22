@@ -1,0 +1,35 @@
+{
+  "name": "april-quickstart",
+  "version": "1.0.0",
+  "description": "personal quickstart templates",
+  "type": "module",
+  "scripts": {
+    "format": "npx prettier --write src",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akortman/april-quickstart"
+  },
+  "author": "April Kortman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/akortman/april-quickstart/issues"
+  },
+  "homepage": "https://github.com/akortman/april-quickstart#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "commitlint": "^20.1.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.3",
+    "prettier": "^3.6.2"
+  },
+  "lint-staged": {
+    "*": "prettier --ignore-unknown --write --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "dotenv-cli": "^10.0.0",
+    "rimraf": "^6.0.1"
+  }
+}
