@@ -37,6 +37,7 @@
     "*": "prettier --ignore-unknown --write --ignore-path .gitignore"
   },
   "dependencies": {
+    "@tsconfig/node22": "^22.0.5",
     "commander": "^14.0.2",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^10.0.0",
