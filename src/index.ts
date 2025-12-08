@@ -134,7 +134,7 @@ const initFromDirectory = async (
   }
 
   console.log('copying files to directory...');
-  cp(source, dest.toString(), { recursive: true });
+  cp(_resolve(source + '/files'), dest.toString(), { recursive: true });
 
   console.log('substituting variables...');
   const makeVariableEntry = async (name: string, getValue: () => Promise<string | undefined>) => ({
