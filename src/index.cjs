@@ -75,7 +75,7 @@ const substituteVariables = async (target, variables) => {
   }
 };
 
-const initRepo = async (target, repositoryName, options) => {
+const initRepo = async (target, _repositoryName, _options) => {
   console.log('init repository at target...');
   //if (options.github) {
   //  await executeCommand(
@@ -169,7 +169,7 @@ program
   //.option('--github', 'create repository on github', false)
   .action(async (type, dest, options) => {
     assert(['generic', 'node', 'cad'].includes(type));
-    source = path.resolve(`${await repoRoot()}/templates/${type}`);
+    const source = path.resolve(`${await repoRoot()}/templates/${type}`);
     dest = path.resolve(dest);
     console.log(dest);
     assert(dest.length > 1);

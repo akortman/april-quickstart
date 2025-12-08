@@ -2,11 +2,13 @@
   "name": "april-quickstart",
   "version": "1.0.0",
   "description": "personal quickstart templates",
-  "main": "src/index.js",
+  "main": "src/index.cjs",
+  "type": "module",
   "scripts": {
     "format": "npx prettier --write src",
+    "lint": "eslint .",
     "prepare": "husky",
-    "cli": "node src/index.js"
+    "cli": "node src/index.cjs"
   },
   "repository": {
     "type": "git",
@@ -21,10 +23,15 @@
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.48.1",
+    "@typescript-eslint/parser": "^8.48.1",
     "commitlint": "^20.1.0",
+    "eslint": "^9.39.1",
+    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.3",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.48.1"
   },
   "lint-staged": {
     "*": "prettier --ignore-unknown --write --ignore-path .gitignore"
