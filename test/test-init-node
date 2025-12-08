@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# begin setup
+set -euo pipefail # Error handling.
+TEST_NAME=$(basename "$0")
+BASEDIR=$(dirname $0)
+DIST=$BASEDIR/dist
+TARGET=$DIST/$TEST_NAME
+mkdir -p $DIST
+echo "*\n" > $DIST/.gitignore
+rm -rf $TARGET && mkdir -p $TARGET
+echo "Output to: $TARGET"
+set -x # Print executed commands to terminal.
+# end setup
+
+# begin test
+cd $BASEDIR/.. && (
+  npm run cli init node $TARGET
+)
+# end test
