@@ -3,16 +3,21 @@ import { readdir, readFile, writeFile, access, mkdir, cp } from 'fs/promises';
 import { exec } from 'node:child_process';
 import { resolve as _resolve } from 'path';
 import { strict as assert } from 'node:assert';
-import { config } from 'dotenv';
+import dotenv from 'dotenv';
+import { PathLike } from 'fs';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-config();
+dotenv.config();
 
 const variablePrefix = '__TODO';
 const variableEnvVarPrefix = 'APRIL_QUICKSTART';
 
-const executeCommand = async (command, cwd = undefined) =>
-  new Promise((resolve, reject) =>
-    exec(command, { cwd, shell: true }, function (err, stdout, stderr) {
+const executeCommand = async (command: string, cwd?: string) => {
+  const actualCwd = cwd || dirname(fileURLToPath(import.meta.url));
+  return new Promise<string>((resolve, reject) =>
+    // @ts-ignore "shell: true"
+    exec(command, { cwd: actualCwd, shell: true }, (err: any, stdout: string, stderr: string) => {
       if (err) {
         console.error(err);
         reject(stderr);
@@ -20,19 +25,23 @@ const executeCommand = async (command, cwd = undefined) =>
       resolve(stdout);
     }),
   );
+};
 
 /**
  * Sourced from https://stackoverflow.com/questions/39217271/how-to-determine-whether-the-directory-is-empty-directory-with-nodejs
  */
-const directoryIsEmpty = async (dir) => {
+const directoryIsEmpty = async (dir: PathLike) => {
   return readdir(dir).then((files) => {
     return files.length === 0;
   });
 };
 
 // substitute variables in the target dir.
-const substituteVariables = async (target, variables) => {
-  const files = await executeCommand(`find ${target} -type f -name "*" ! -path '*/.git/*'`).then((stdout) =>
+const substituteVariables = async (
+  target: any,
+  variables: [{ name: string; value: any }, { name: string; value: any }, { name: string; value: any }],
+) => {
+  const files = await executeCommand(`find ${target} -type f -name "*" ! -path '*/.git/*'`).then((stdout: string) =>
     stdout.trim().split('\n'),
   );
 
@@ -75,7 +84,7 @@ const substituteVariables = async (target, variables) => {
   }
 };
 
-const initRepo = async (target, _repositoryName, _options) => {
+const initRepo = async (target: PathLike, _repositoryName: any, _options: any) => {
   console.log('init repository at target...');
   //if (options.github) {
   //  await executeCommand(
@@ -84,14 +93,14 @@ const initRepo = async (target, _repositoryName, _options) => {
   //  ).then(console.log);
   //}
 
-  await executeCommand('git init', target).then(console.log);
-  await executeCommand('git add .', target).then(console.log);
+  await executeCommand('git init', target.toString()).then(console.log);
+  await executeCommand('git add .', target.toString()).then(console.log);
   // TODO: we should check if there are any commits yet in case this is in-place.
   //await executeCommand('git commit -m "feat: initial commit"', target).then(console.log);
 };
 
-const deriveProjectName = async (target) => {
-  const pathEntries = target.split('/');
+const deriveProjectName = async (target: PathLike) => {
+  const pathEntries = target.toString().split('/');
   const projectDirectoryName = pathEntries[pathEntries.length - 1];
   assert(projectDirectoryName.length > 0);
   return projectDirectoryName;
@@ -107,7 +116,11 @@ const deriveGithubUser = async () => {
   }
 };
 
-const initFromDirectory = async (source, dest, options) => {
+const initFromDirectory = async (
+  source: string | URL,
+  dest: PathLike,
+  options: { git?: any; github?: any; force?: any },
+) => {
   const { force } = options;
 
   try {
@@ -121,10 +134,10 @@ const initFromDirectory = async (source, dest, options) => {
   }
 
   console.log('copying files to directory...');
-  cp(source, dest, { recursive: true });
+  cp(source, dest.toString(), { recursive: true });
 
   console.log('substituting variables...');
-  const makeVariableEntry = async (name, getValue) => ({
+  const makeVariableEntry = async (name: string, getValue: () => Promise<string | undefined>) => ({
     name: `${variablePrefix}_${name}`,
     value: process.env[`${variableEnvVarPrefix}_${name}`] || (await getValue()),
   });
@@ -133,9 +146,9 @@ const initFromDirectory = async (source, dest, options) => {
   await substituteVariables(
     dest,
     await Promise.all([
-      await repositoryNameVariable,
-      await makeVariableEntry('GITHUB_USER', deriveGithubUser),
-      await makeVariableEntry('PROJECT_DESCRIPTION', () => ''),
+      repositoryNameVariable,
+      makeVariableEntry('GITHUB_USER', deriveGithubUser),
+      makeVariableEntry('PROJECT_DESCRIPTION', async () => ''),
     ]),
   );
 
@@ -152,8 +165,9 @@ const initFromDirectory = async (source, dest, options) => {
  * Get the root directory of the current repository.
  */
 const repoRoot = async () => {
-  const s = await executeCommand('git rev-parse --show-toplevel');
-  return s.trim();
+  const s = (await executeCommand('git rev-parse --show-toplevel')).trim();
+  assert(s && s.length > 0, 'Expected to be in a git repo to search to templates');
+  return s;
 };
 
 const program = new Command();
@@ -169,6 +183,7 @@ program
   //.option('--github', 'create repository on github', false)
   .action(async (type, dest, options) => {
     assert(['generic', 'node', 'cad'].includes(type));
+
     const source = _resolve(`${await repoRoot()}/templates/${type}`);
     dest = _resolve(dest);
     console.log(dest);
