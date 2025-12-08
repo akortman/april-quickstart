@@ -1,22 +1,70 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Command } from 'commander';
 import { readdir, readFile, writeFile, access, mkdir, cp } from 'fs/promises';
 import { exec } from 'node:child_process';
 import { resolve as _resolve } from 'path';
 import { strict as assert } from 'node:assert';
 import dotenv from 'dotenv';
-import { PathLike } from 'fs';
+import fs from 'fs';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import yaml from 'js-yaml';
+import { z } from 'zod/v4';
 
 dotenv.config();
 
 const variablePrefix = '__TODO';
 const variableEnvVarPrefix = 'APRIL_QUICKSTART';
 
-const executeCommand = async (command: string, cwd?: string) => {
+const QuickstartDefinition = z.object({
+  'post-copy': z.array(z.string()),
+});
+type QuickstartDefinition = z.infer<typeof QuickstartDefinition>;
+
+const TemplateFileSchema = z.object({ quickstart: QuickstartDefinition });
+
+const validateAndLoadFromDirectory = async (path: fs.PathLike): Promise<QuickstartDefinition> => {
+  try {
+    return TemplateFileSchema.parse(yaml.load(fs.readFileSync(path, 'utf8'))).quickstart;
+  } catch (e) {
+    console.warn(`No config file found at ${path}: '${String(e)}'`);
+    if (!fs.existsSync(path + '/files')) {
+      console.log(`(legacy) will copy from ${_resolve(path + '/files')}`);
+    } else {
+      throw new Error(`No quickstart.yaml or files directory: is ${path} a valid quickstart directory?`);
+    }
+    return {
+      'post-copy': [],
+    };
+  }
+};
+
+const loadTemplateDefinition = async (path: fs.PathLike) => {
+  const template = await validateAndLoadFromDirectory(_resolve(path + '/quickstart.yaml'));
+
+  return {
+    template: template,
+    sourceDirectory: path,
+    postCopy: async (dest: fs.PathLike) => {
+      if (!template['post-copy']) return;
+      const script = template['post-copy'].join(' && ');
+      console.log(`exec post-copy... '${script}'`);
+      const stdout = await executeCommand(script, dest);
+      console.log(
+        stdout
+          .split('\n')
+          .map((l) => `post-copy > ${l}`)
+          .join('\n'),
+      );
+      return stdout;
+    },
+  };
+};
+
+const executeCommand = async (command: string, cwd?: string | fs.PathLike) => {
   const actualCwd = cwd || dirname(fileURLToPath(import.meta.url));
   return new Promise<string>((resolve, reject) =>
-    // @ts-ignore "shell: true"
+    // @ts-expect-error "shell: true"
     exec(command, { cwd: actualCwd, shell: true }, (err: any, stdout: string, stderr: string) => {
       if (err) {
         console.error(err);
@@ -30,7 +78,7 @@ const executeCommand = async (command: string, cwd?: string) => {
 /**
  * Sourced from https://stackoverflow.com/questions/39217271/how-to-determine-whether-the-directory-is-empty-directory-with-nodejs
  */
-const directoryIsEmpty = async (dir: PathLike) => {
+const directoryIsEmpty = async (dir: fs.PathLike) => {
   return readdir(dir).then((files) => {
     return files.length === 0;
   });
@@ -42,10 +90,8 @@ const substituteVariables = async (
   variables: [{ name: string; value: any }, { name: string; value: any }, { name: string; value: any }],
 ) => {
   const files = await executeCommand(`find ${target} -type f -name "*" ! -path '*/.git/*'`).then((stdout: string) =>
-    stdout.trim().split('\n'),
+    stdout ? stdout.trim().split('\n') : [],
   );
-
-  // console.log(JSON.stringify(files, null, 2));
 
   for (const v of variables) {
     if (v.value === undefined || v.value === null) {
@@ -84,7 +130,7 @@ const substituteVariables = async (
   }
 };
 
-const initRepo = async (target: PathLike, _repositoryName: any, _options: any) => {
+const initRepo = async (target: fs.PathLike, _repositoryName: any, _options: any) => {
   console.log('init repository at target...');
   //if (options.github) {
   //  await executeCommand(
@@ -99,7 +145,7 @@ const initRepo = async (target: PathLike, _repositoryName: any, _options: any) =
   //await executeCommand('git commit -m "feat: initial commit"', target).then(console.log);
 };
 
-const deriveProjectName = async (target: PathLike) => {
+const deriveProjectName = async (target: fs.PathLike) => {
   const pathEntries = target.toString().split('/');
   const projectDirectoryName = pathEntries[pathEntries.length - 1];
   assert(projectDirectoryName.length > 0);
@@ -116,13 +162,7 @@ const deriveGithubUser = async () => {
   }
 };
 
-const initFromDirectory = async (
-  source: string | URL,
-  dest: PathLike,
-  options: { git?: any; github?: any; force?: any },
-) => {
-  const { force } = options;
-
+const ensureTarget = async (dest: fs.PathLike, { force }: { force?: boolean }) => {
   try {
     await access(dest);
     if (!force && !(await directoryIsEmpty(dest)))
@@ -132,9 +172,26 @@ const initFromDirectory = async (
     console.log('creating directory...');
     mkdir(dest, { recursive: true });
   }
+};
 
+const copyToTarget = (source: fs.PathLike, dest: fs.PathLike) => {
   console.log('copying files to directory...');
-  cp(_resolve(source + '/files'), dest.toString(), { recursive: true });
+  if (fs.existsSync(source + '/files')) cp(_resolve(source + '/files'), dest.toString(), { recursive: true });
+  else console.warn(`Does not exist: ${fs.existsSync(source + '/files')}`);
+};
+
+const initFromDirectory = async (
+  template: Awaited<ReturnType<typeof loadTemplateDefinition>>,
+  dest: fs.PathLike,
+  options: { git?: any; github?: any; force?: any },
+) => {
+  const { sourceDirectory: source } = template;
+  console.log(`from\t${source}\nto\t${dest}\n`);
+
+  ensureTarget(dest, options);
+  copyToTarget(source, dest);
+
+  await template.postCopy(dest);
 
   console.log('substituting variables...');
   const makeVariableEntry = async (name: string, getValue: () => Promise<string | undefined>) => ({
@@ -182,14 +239,11 @@ program
   .option('--git', 'init a git repository?', true)
   //.option('--github', 'create repository on github', false)
   .action(async (type, dest, options) => {
-    assert(['generic', 'node', 'cad'].includes(type));
-
-    const source = _resolve(`${await repoRoot()}/templates/${type}`);
+    const template = await loadTemplateDefinition(_resolve(`${await repoRoot()}/templates/${type}`));
     dest = _resolve(dest);
     console.log(dest);
     assert(dest.length > 1);
-    console.log(`from\t${source}\nto\t${dest}\n`);
-    initFromDirectory(source, dest, options);
+    initFromDirectory(template, dest, options);
   });
 
 program.parse();

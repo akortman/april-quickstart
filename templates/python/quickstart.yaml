@@ -1,0 +1,4 @@
+quickstart:
+  post-copy:
+    - uv init
+    - uv add ruff
