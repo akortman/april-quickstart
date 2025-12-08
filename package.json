@@ -2,13 +2,13 @@
   "name": "april-quickstart",
   "version": "1.0.0",
   "description": "personal quickstart templates",
-  "main": "src/index.cjs",
+  "main": "src/index.js",
   "type": "module",
   "scripts": {
     "format": "npx prettier --write src",
     "lint": "eslint .",
     "prepare": "husky",
-    "cli": "node src/index.cjs"
+    "cli": "node src/index.js"
   },
   "repository": {
     "type": "git",

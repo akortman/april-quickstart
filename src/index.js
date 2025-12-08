@@ -1,18 +1,18 @@
-const { Command } = require('commander');
-const fs = require('fs/promises');
-const childProcess = require('node:child_process');
-const path = require('path');
-const assert = require('node:assert').strict;
-const dotenv = require('dotenv');
+import { Command } from 'commander';
+import { readdir, readFile, writeFile, access, mkdir, cp } from 'fs/promises';
+import { exec } from 'node:child_process';
+import { resolve as _resolve } from 'path';
+import { strict as assert } from 'node:assert';
+import { config } from 'dotenv';
 
-dotenv.config();
+config();
 
 const variablePrefix = '__TODO';
 const variableEnvVarPrefix = 'APRIL_QUICKSTART';
 
 const executeCommand = async (command, cwd = undefined) =>
   new Promise((resolve, reject) =>
-    childProcess.exec(command, { cwd, shell: true }, function (err, stdout, stderr) {
+    exec(command, { cwd, shell: true }, function (err, stdout, stderr) {
       if (err) {
         console.error(err);
         reject(stderr);
@@ -25,7 +25,7 @@ const executeCommand = async (command, cwd = undefined) =>
  * Sourced from https://stackoverflow.com/questions/39217271/how-to-determine-whether-the-directory-is-empty-directory-with-nodejs
  */
 const directoryIsEmpty = async (dir) => {
-  return fs.readdir(dir).then((files) => {
+  return readdir(dir).then((files) => {
     return files.length === 0;
   });
 };
@@ -48,14 +48,14 @@ const substituteVariables = async (target, variables) => {
   }
 
   for (const f of files) {
-    let fileText = await fs.readFile(f).then((b) => b.toString());
+    let fileText = await readFile(f).then((b) => b.toString());
     for (const v of variables) {
       if (v.value === undefined || v.value === null) {
         continue;
       }
       fileText = fileText.replaceAll(v.name, v.value);
     }
-    await fs.writeFile(f, fileText);
+    await writeFile(f, fileText);
   }
 
   // alert if any variables are still present
@@ -111,17 +111,17 @@ const initFromDirectory = async (source, dest, options) => {
   const { force } = options;
 
   try {
-    await fs.access(dest);
+    await access(dest);
     if (!force && !(await directoryIsEmpty(dest)))
       throw new Error(`Non-empty directory at dest: '${dest}', use '--force' to create in a non-empty directory`);
   } catch {
     // directory does not exist, we're okay to proceed.
     console.log('creating directory...');
-    fs.mkdir(dest, { recursive: true });
+    mkdir(dest, { recursive: true });
   }
 
   console.log('copying files to directory...');
-  fs.cp(source, dest, { recursive: true });
+  cp(source, dest, { recursive: true });
 
   console.log('substituting variables...');
   const makeVariableEntry = async (name, getValue) => ({
@@ -169,8 +169,8 @@ program
   //.option('--github', 'create repository on github', false)
   .action(async (type, dest, options) => {
     assert(['generic', 'node', 'cad'].includes(type));
-    const source = path.resolve(`${await repoRoot()}/templates/${type}`);
-    dest = path.resolve(dest);
+    const source = _resolve(`${await repoRoot()}/templates/${type}`);
+    dest = _resolve(dest);
     console.log(dest);
     assert(dest.length > 1);
     console.log(`from\t${source}\nto\t${dest}\n`);
