@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "format": "npx prettier --write src",
-    "lint": "eslint .",
+    "lint": "eslint . && tsc --noEmit",
     "prepare": "husky",
     "cli": "tsx src/index.ts",
     "clean": "rimraf ./dist ./test/dist"
