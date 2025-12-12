@@ -1,7 +1,0 @@
-{
-  "editor.formatOnPaste": false,
-  "editor.formatOnSave": false,
-  "[json]": { "editor.formatOnSave": true },
-  "editor.tabSize": 2,
-  "editor.rulers": [120]
-}

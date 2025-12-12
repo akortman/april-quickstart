@@ -6,14 +6,61 @@
     "jumpstart": {
       "type": "object",
       "properties": {
-        "post-copy": {
+        "extends": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "steps": {
           "type": "array",
           "items": {
-            "type": "string"
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "copy": {
+                    "type": "object",
+                    "properties": {
+                      "from": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      }
+                    },
+                    "required": ["from"],
+                    "additionalProperties": false
+                  }
+                },
+                "required": ["copy"],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "run": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": ["run"],
+                "additionalProperties": false
+              }
+            ]
           }
         }
       },
-      "required": ["post-copy"],
+      "required": ["steps"],
       "additionalProperties": false
     }
   },

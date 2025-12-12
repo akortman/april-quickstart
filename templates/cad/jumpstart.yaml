@@ -2,6 +2,3 @@ jumpstart:
   extends: 'repo:templates/base'
   steps:
     - copy: { from: './files' }
-    - run:
-        - uv init
-        - uv add ruff

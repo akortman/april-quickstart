@@ -1,7 +1,14 @@
-import z from 'zod';
+import z from 'zod/v4';
+
+export const JumpstartStep = z.union([
+  z.object({ copy: z.object({ from: z.string(), to: z.string().optional() }) }),
+  z.object({ run: z.array(z.string()) }),
+]);
+export type JumpstartStep = z.infer<typeof JumpstartStep>;
 
 export const JumpstartDefinition = z.object({
-  'post-copy': z.array(z.string()),
+  extends: z.union([z.array(z.string()), z.string()]).optional(),
+  steps: z.array(JumpstartStep),
 });
 export type JumpstartDefinition = z.infer<typeof JumpstartDefinition>;
 

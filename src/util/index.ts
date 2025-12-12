@@ -5,6 +5,7 @@ import { substituteVariables } from './variable-subsitution';
 import { readdir } from 'fs/promises';
 import fs from 'node:fs';
 import { access, cp, mkdir } from 'node:fs/promises';
+import logger from '../logger';
 import path from 'node:path';
 
 export { executeCommand, loadTemplateDefinition, substituteVariables };
@@ -28,9 +29,22 @@ export const directoryIsEmpty = async (dir: fs.PathLike) => {
 };
 
 export const copyToTarget = (source: fs.PathLike, dest: fs.PathLike) => {
-  console.log('copying files to directory...');
-  if (fs.existsSync(source + '/files')) cp(path.resolve(source + '/files'), dest.toString(), { recursive: true });
-  else console.warn(`Does not exist: ${fs.existsSync(source + '/files')}`);
+  const l = logger.child({ source, dest, function: 'copyToTarget' });
+  if (!path.isAbsolute(source.toString())) {
+    l.error('Copy failed: source must be absolute');
+    return;
+  }
+  if (!path.isAbsolute(dest.toString())) {
+    l.error('Copy failed: dest must be absolute');
+    return;
+  }
+  l.info('copying to target');
+  if (fs.existsSync(source)) {
+    cp(source.toString(), dest.toString(), { recursive: true });
+  } else {
+    l.warn('Copy failed: source directory does not exist');
+    console.warn(`Attempted to copy from ${source}, but does not seem to exist`);
+  }
 };
 
 export const ensureTarget = async (dest: fs.PathLike, { force }: { force?: boolean }) => {
