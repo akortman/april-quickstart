@@ -8,5 +8,8 @@
     "editor.formatOnSave": true
   },
   "editor.tabSize": 2,
-  "editor.rulers": [120]
+  "editor.rulers": [120],
+  "yaml.schemas": {
+    "spec/jumpstart.schema.json": "jumpstart.{yaml,json}"
+  }
 }

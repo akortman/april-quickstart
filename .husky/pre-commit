@@ -1,1 +1,2 @@
+npx tsx src/scripts/build-json-schemas.ts && git add spec/jumpstart.schema.json
 npx lint-staged

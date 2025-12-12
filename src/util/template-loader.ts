@@ -3,13 +3,6 @@ import yaml from 'js-yaml';
 import { z } from 'zod/v4';
 import { resolve as resolvePath } from 'path';
 
-const JumpstartDefinition = z.object({
-  'post-copy': z.array(z.string()),
-});
-type JumpstartDefinition = z.infer<typeof JumpstartDefinition>;
-
-const TemplateFileSchema = z.object({ jumpstart: JumpstartDefinition });
-
 const validateAndLoadFromDirectory = async (path: fs.PathLike): Promise<JumpstartDefinition> => {
   try {
     return TemplateFileSchema.parse(yaml.load(fs.readFileSync(path, 'utf8'))).jumpstart;

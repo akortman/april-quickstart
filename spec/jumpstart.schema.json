@@ -1,0 +1,22 @@
+{
+  "$id": "http://rodent.zone/jumpstart/schemas/jumpstart.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "jumpstart": {
+      "type": "object",
+      "properties": {
+        "post-copy": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["post-copy"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["jumpstart"],
+  "additionalProperties": false
+}

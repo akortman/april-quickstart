@@ -1,5 +1,6 @@
 jumpstart:
   extends: 'repo:templates/base'
-  post-copy:
-    - uv init
-    - uv add ruff
+  steps:
+    - run:
+        - uv init
+        - uv add ruff
