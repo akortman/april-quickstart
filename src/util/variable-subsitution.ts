@@ -4,7 +4,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { executeCommand } from './execute-command';
 
 export const variablePrefix = '__TODO';
-export const variableEnvVarPrefix = 'APRIL_QUICKSTART';
+export const variableEnvVarPrefix = 'JUMPSTART';
 
 // substitute variables in the target dir.
 export const substituteVariables = async (

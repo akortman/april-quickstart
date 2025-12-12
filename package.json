@@ -1,7 +1,7 @@
 {
-  "name": "april-quickstart",
+  "name": "jumpstart",
   "version": "2.0.0",
-  "description": "personal quickstart templates",
+  "description": "quickstart template management tool",
   "main": "src/index.ts",
   "type": "module",
   "scripts": {

@@ -1,6 +1,6 @@
-# april-quickstart
+# jumpstart
 
-personal quickstart for various kinds of code projects
+quickstart for various kinds of code projects
 
 - different templates included in `templates/`
 - install a template with `npm run cli init <template> <dest>`

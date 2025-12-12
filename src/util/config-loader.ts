@@ -4,22 +4,22 @@ import { z } from 'zod/v4';
 import { resolve as resolvePath } from 'path';
 import { executeCommand } from './execute-command';
 
-const QuickstartDefinition = z.object({
+const JumpstartDefinition = z.object({
   'post-copy': z.array(z.string()),
 });
-type QuickstartDefinition = z.infer<typeof QuickstartDefinition>;
+type JumpstartDefinition = z.infer<typeof JumpstartDefinition>;
 
-const TemplateFileSchema = z.object({ quickstart: QuickstartDefinition });
+const TemplateFileSchema = z.object({ jumpstart: JumpstartDefinition });
 
-const validateAndLoadFromDirectory = async (path: fs.PathLike): Promise<QuickstartDefinition> => {
+const validateAndLoadFromDirectory = async (path: fs.PathLike): Promise<JumpstartDefinition> => {
   try {
-    return TemplateFileSchema.parse(yaml.load(fs.readFileSync(path, 'utf8'))).quickstart;
+    return TemplateFileSchema.parse(yaml.load(fs.readFileSync(path, 'utf8'))).jumpstart;
   } catch (e) {
     console.warn(`No config file found at ${path}: '${String(e)}'`);
     if (!fs.existsSync(path + '/files')) {
       console.log(`(legacy) will copy from ${resolvePath(path + '/files')}`);
     } else {
-      throw new Error(`No quickstart.yaml or files directory: is ${path} a valid quickstart directory?`);
+      throw new Error(`No jumpstart.yaml or files directory: is ${path} a valid jumpstart directory?`);
     }
     return {
       'post-copy': [],
@@ -28,7 +28,7 @@ const validateAndLoadFromDirectory = async (path: fs.PathLike): Promise<Quicksta
 };
 
 export const loadTemplateDefinition = async (path: fs.PathLike) => {
-  const template = await validateAndLoadFromDirectory(resolvePath(path + '/quickstart.yaml'));
+  const template = await validateAndLoadFromDirectory(resolvePath(path + '/jumpstart.yaml'));
 
   return {
     template: template,

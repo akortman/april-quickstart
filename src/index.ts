@@ -6,7 +6,7 @@ dotenv.config();
 
 const program = new Command();
 
-program.name('april-quickstart').description('CLI to init some default project directories').version('0.0.1');
+program.name('jumpstart').description('quickly create initial codebases').version('0.0.1');
 
 program
   .command('init')

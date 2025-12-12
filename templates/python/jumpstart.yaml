@@ -1,4 +1,4 @@
-quickstart:
+jumpstart:
   post-copy:
     - uv init
     - uv add ruff
