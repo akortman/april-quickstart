@@ -1,4 +1,5 @@
 jumpstart:
+  extends: 'repo:templates/base'
   post-copy:
     - uv init
     - uv add ruff

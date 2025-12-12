@@ -5,8 +5,10 @@ import { deriveGithubUser, deriveProjectName } from '../util/derive-properties';
 import { substituteVariables, variableEnvVarPrefix, variablePrefix } from '../util/variable-subsitution';
 import path from 'node:path';
 import { PathLike } from 'node:fs';
+import logger from '../logger';
+import { TemplateDefinition } from '../util/template-loader';
 
-const initRepo = async (target: PathLike, _repositoryName: any, _options: any) => {
+const initRepositoryAtTarget = async (target: PathLike, _repositoryName: any, _options: any) => {
   console.log('init repository at target...');
   //if (options.github) {
   //  await executeCommand(
@@ -21,20 +23,36 @@ const initRepo = async (target: PathLike, _repositoryName: any, _options: any) =
   //await executeCommand('git commit -m "feat: initial commit"', target).then(console.log);
 };
 
-const initFromDirectory = async (
-  template: Awaited<ReturnType<typeof loadTemplateDefinition>>,
+const initProjectFromTemplateDefinition = async (
+  template: TemplateDefinition,
   dest: PathLike,
   options: { git?: any; github?: any; force?: any },
 ) => {
-  const { sourceDirectory: source } = template;
-  console.log(`from\t${source}\nto\t${dest}\n`);
+  logger.info({
+    sourceDirectory: template.sourceDirectory,
+    dest,
+    function: 'initProjectFromTemplateDefinition',
+  });
 
   ensureTarget(dest, options);
-  copyToTarget(source, dest);
+  for (const [i, step] of Object.entries(template.steps)) {
+    if ('copy' in step) {
+      copyToTarget(step.copy.from, dest);
+    } else if ('run' in step) {
+      const script = step.run.join(' && ');
+      const stdout = await executeCommand(script, dest);
+      console.log(
+        stdout
+          .split('\n')
+          .map((l) => `run(${i})$ ${l}`)
+          .join('\n'),
+      );
+      return { stdout };
+    } else {
+      throw new Error(`Unknown step config: ${JSON.stringify(step)}`);
+    }
+  }
 
-  await template.postCopy(dest);
-
-  console.log('substituting variables...');
   const makeVariableEntry = async (name: string, getValue: () => Promise<string | undefined>) => ({
     name: `${variablePrefix}_${name}`,
     value: process.env[`${variableEnvVarPrefix}_${name}`] || (await getValue()),
@@ -52,7 +70,7 @@ const initFromDirectory = async (
 
   if (options.git || options.github) {
     try {
-      initRepo(dest, repositoryNameVariable.value, options);
+      initRepositoryAtTarget(dest, repositoryNameVariable.value, options);
     } catch (e) {
       console.error(`Failed to create repository: ${e}`);
     }
@@ -74,7 +92,7 @@ export const initProject = async (
 ) => {
   const templateDefinition = await loadTemplateDefinition(await findTemplateDirectory(template));
   const destPath = path.resolve(dest);
-  console.log(destPath);
-  assert(destPath.length > 1);
-  initFromDirectory(templateDefinition, dest, options);
+  logger.info({ destPath, templateDefinition });
+  assert(destPath.length > 1, `${destPath} is not a valid path`);
+  initProjectFromTemplateDefinition(templateDefinition, dest, options);
 };

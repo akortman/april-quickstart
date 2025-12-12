@@ -1,4 +1,4 @@
-import { loadTemplateDefinition } from './config-loader';
+import { loadTemplateDefinition } from './template-loader';
 import { executeCommand } from './execute-command';
 import { strict as assert } from 'node:assert';
 import { substituteVariables } from './variable-subsitution';
